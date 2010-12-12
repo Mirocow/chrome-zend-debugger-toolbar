@@ -1,0 +1,197 @@
+<html>
+	<script>
+/**
+ * Request settings from localhost at broadcast port.
+ */
+function getZdeSettingString(port){
+	try {
+		var url = "http://127.0.0.1:"+port;
+		var rf = new XMLHttpRequest();
+		rf.open("GET", url, false);
+		rf.send(null);
+		if(rf.status!=200) return false;
+		return rf.responseText.replace(/^\s+/,'').replace(/\s+$/,'').substring(1);
+	} catch(e) { return false; }
+} 
+
+/**
+ * Load settings from Zend studio into array
+ */
+function getZdeSettingArray(port) {
+    var settingsString = getZdeSettingString(port);
+    if(settingsString == false) return false;
+    
+    var rawSettingsArray = settingsString.split("&");
+    var settingsArray = [];
+    for(i=0; i<rawSettingsArray.length; i++) {
+        if(rawSettingsArray[i].indexOf('=') == -1) continue;        
+        var setting = rawSettingsArray[i].split('=');
+        settingsArray[setting[0]] = setting[1];
+    }    
+    return settingsArray;
+}
+
+/**
+ *	Load settings and store them into localStorage
+ */
+function testSettings() {
+    var bcPort = localStorage['broadcast'];
+    var result = getZdeSettingArray(bcPort);  
+              
+    
+    if(result instanceof Array) { 
+    	localStorage['ip'] = null;
+    	localStorage['port'] = "10000";
+    	localStorage['ssl'] = 0;
+    	localStorage['fastfile'] = 0;
+    	localStorage['protocol'] = null;
+
+    	for(e in result) {
+    		switch(e) {
+    			case 'debug_host':
+    				localStorage['ip'] =  unescape(result[e]);
+    				break;
+    			case 'debug_port':
+    				localStorage['port'] = result[e];
+    				break;    			
+    			case 'use_ssl':
+    				localStorage['ssl'] = result[e];
+    				break;    			
+    			case 'debug_fastfile':
+    				localStorage['fastfile'] = result[e];
+    				break;    			
+    			case 'debug_protocol':
+    				localStorage['protocol'] = result[e];
+    				break;    			
+    		}
+    	}
+		return true;
+    } else {
+    	return false;
+    }
+}
+
+
+/**
+ * Retrieve settings from localstorag
+ */
+function getSettings() {
+    var data = {
+    		localcopy: localStorage["localcopy"],
+    		breakfirstline: localStorage["breakfirstline"],
+    		broadcast: localStorage["broadcast"],
+    		ip: localStorage["ip"],
+    		port: localStorage["port"],
+    		ssl: localStorage["ssl"],
+    		connecttype: localStorage["connecttype"],
+    		fastfile: localStorage['fastfile'],
+    		protocol: localStorage['protocol']
+    };
+    return data;
+}
+
+/**
+ * Submit debug request to content script.
+ */
+function startDebug(action, reload) {
+    // Set up data and update settings if automatic.
+    var data = getSettings();	    
+    if(data.connecttype == 'automatic') {
+        testSettings();
+        data = getSettings();   
+    }
+    
+    // Send request to content script of current page..
+    chrome.tabs.getSelected(null, function(tab) { 
+            // Don't try to debug pages other than http/https pages.
+            if(tab.url.substring(0,4) != "http") return;
+            
+               		
+        	chrome.tabs.sendRequest(tab.id, {action: action, reload: reload, data: data}, 
+            function(response) {
+                console.log(response.message);
+            });
+    });
+}
+
+/**
+ * Logic for debug next page.
+ */
+var debugNext = [];
+
+function setNext() {
+    var tabId;
+    chrome.tabs.getSelected(null, function(tab) {
+    
+    // Only allow http(s) schemes.
+       if(tab.url.substring(0,4) != "http") {
+            tabId = -1;
+            return;
+       }
+        
+       tabId = tab.id;
+	   if(!debugNext[tabId]) {
+    		chrome.browserAction.setBadgeText({text: "N"});
+    		debugNext[tabId]=true;
+    		startDebug('debug', false);
+    	} else {
+    		debugNext[tabId]=false;
+    		chrome.browserAction.setBadgeText({text: ""});
+    		startDebug('clear', false);	
+    	}
+    });
+    
+    if(tabId == -1) return false;
+	
+	return debugNext[tabId];
+}
+		
+		
+/**
+ * Listener for requests from content script.
+ */	
+chrome.extension.onRequest.addListener(
+	function(request, sender, sendResponse) {
+	    console.log("Starting "+request.action+" request from "+sender.id);
+	    
+	    switch(request.action) {
+	        case 'clearnext':
+	            debugNext[sender.tab.id] = false;
+	            chrome.browserAction.setBadgeText({text: ""});	
+	            break;
+	    }
+	    sendResponse({message: request.action + " done."});
+	}
+);
+
+chrome.tabs.onCreated.addListener(
+    function(tabId, selectInfo) {
+        debugNext[tabId] = false;    
+    
+    }
+);
+
+chrome.tabs.onRemoved.addListener(
+    function(tabId, selectInfo) {
+        delete(debugNext[tabId]);
+    }
+);
+
+chrome.tabs.onSelectionChanged.addListener(
+    function(tabId, selectInfo) {
+        if(debugNext[tabId]) {
+            chrome.browserAction.setBadgeText({text: "N"});         
+        } else {
+            chrome.browserAction.setBadgeText({text: ""});   
+        }
+    }
+);
+
+
+if(localStorage['connecttype'] == null) localStorage['connecttype'] = 'automatic';
+if(localStorage['localcopy'] == null) localStorage['localcopy'] = 0;
+if(localStorage['breakfirstline'] == null) localStorage['breakfirstline'] = 1;
+if(localStorage['broadcast'] == null) localStorage['broadcast'] = '20080';
+
+	</script>
+</html>

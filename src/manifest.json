@@ -1,0 +1,21 @@
+{
+  "name": "Zend Debugger Extension",
+  "version": "0.6",
+  "description": "Simple Zend debugger extension, meant to fill the gap until Zend publishes an official plugin for Chrome.",
+  "icons": { "16": "resources/zde_icon16.png",
+  			 "32": "resources/zde_icon32.png",
+  			 "48": "resources/zde_icon48.png" },
+  "browser_action": {
+    "default_icon": "resources/zde_icon16.png",
+    "popup": "menu.html"
+  },
+  "background_page": "background.html",
+  "options_page": "options.html",
+  "permissions": ["tabs", "http://127.0.0.1/"],
+  "content_scripts": [
+   {
+        "matches": ["http://*/", "https://*/", "http://*/*", "https://*/*"],
+        "js": ["content.js"]
+   }
+  ]
+}

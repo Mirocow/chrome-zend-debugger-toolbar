@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Zend Debugger Menu</title>
+		<style>
+		body {
+		  min-width:120px;
+		  overflow-x:hidden;
+		  color:#000;
+		  font-family : arial;
+		  font-size : 0.8em;
+		}
+
+		img {
+			margin-right : 5px;
+		}
+		ul {
+			margin-top : 0px;
+			margin-bottom : 0px;
+		}
+		div {
+			cursor : pointer;
+		}
+		li {
+			cursor : pointer;
+		}
+		a {
+			color : #000;
+			text-decoration : none;
+			font-family : arial;
+		}
+		</style>
+		<script>
+		function run(type) {
+			var bg = chrome.extension.getBackgroundPage();
+
+			switch(type) {
+				case 'debug':
+					bg.startDebug('debug', true);
+					window.close();
+					break;
+				case 'debugnext':
+					bg.setNext('debug');
+					window.close();
+					break;
+				case 'profile':
+				    bg.startDebug('profile', true);
+					window.close();
+					break;
+				case 'profilenext':
+					bg.setNext('profile');
+					window.close();
+					break;
+				case 'options':
+					chrome.tabs.create({url: 'options.html'});
+					break;
+			}
+		}
+		</script>
+		</head>
+	<body>
+		<img src="resources/debug.gif">Debug<br/>
+		<ul>
+		<li ><a href="#" onclick="run('debug');">Current page</a></li>
+		<li ><a href="#" onclick="run('debugnext');">Next page</a></li>
+		</ul>
+		<div><img src="resources/profile.gif"><a href="#"  onclick="run('profile');"> Profile</a><br/></div>
+		<div><img src="resources/settings.gif"><a href="#" onmouseup="run('options');"> Options</a><br/></div>
+	</body>
+</html>

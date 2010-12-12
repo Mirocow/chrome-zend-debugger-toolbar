@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Zend Debugger Extension Options</title>
+		<link href="resources/reset.css" rel="stylesheet" />
+		<link href="resources/options.css" rel="stylesheet" />
+		<script type="text/javascript">
+		/**
+		 *	Save values from form to localStorage
+		 */
+		function saveSettings() {
+		    localStorage["localcopy"] = document.getElementById('localcopy').checked ? 1 : 0;
+		    localStorage["breakfirstline"] = document.getElementById('breakfirstline').checked ? 1 : 0;
+		    localStorage["broadcast"] = document.getElementById('broadcast').value;
+		    localStorage["ip"] = document.getElementById('ip').value;
+		    localStorage["port"] = document.getElementById('port').value;
+			localStorage["ssl"] = document.getElementById('ssl').checked ? 1 : 0;
+		    if(document.getElementById('connecttype_manual').checked) {
+		        localStorage['connecttype']='manual';
+		    } else {
+		        localStorage['connecttype']='automatic';
+		    }
+		}
+
+		/**
+		 *	Load elements with values from localStorage
+		 */
+		function resetSettings() {
+			var msg = "localStorage:\n";
+		    var localcopy = localStorage["localcopy"];
+		    var breakfirstline = localStorage["breakfirstline"];
+		    var broadcast = localStorage["broadcast"];
+		    var ip = localStorage["ip"];
+		    var port = localStorage["port"];
+			var ssl = localStorage["ssl"];
+		    var connecttype = localStorage["connecttype"];
+
+		    if(localcopy != null) document.getElementById('localcopy').checked = (localcopy == 1 ? true : false);
+		    if(breakfirstline != null) document.getElementById('breakfirstline').checked = (breakfirstline == 1? true : false);
+		    if(broadcast != null) document.getElementById('broadcast').value=broadcast;
+		    if(ip != null) document.getElementById('ip').value=ip;
+		    if(port != null) document.getElementById('port').value=port;
+			if(ssl != null) document.getElementById('ssl').checked = (ssl == 1? true : false);
+		    if(connecttype != null) {
+		        setConnectType(connecttype);
+		    }
+		}
+
+		/**
+		 * Set up form fields for connection type
+		 */
+		function setConnectType(type) {
+		    if(type=='automatic') {
+		    	document.getElementById('connecttype_automatic').checked= true;
+		    	document.getElementById('connecttype_manual').checked= false;
+		        document.getElementById('ip').disabled=true;
+		        document.getElementById('port').disabled=true;
+				document.getElementById('ssl').disabled=true;
+		        document.getElementById('broadcast').disabled=false;
+		    }
+		    if(type=='manual') {
+		    	document.getElementById('connecttype_automatic').checked = false;
+		    	document.getElementById('connecttype_manual').checked = true;
+		        document.getElementById('ip').disabled=false;
+		        document.getElementById('port').disabled=false;
+				document.getElementById('ssl').disabled=false;
+		        document.getElementById('broadcast').disabled=true;
+		    }
+		}
+
+		/**
+		 * Load connection settings from Zend Studio
+		 */
+		function testSettings() {
+			// Get background script.
+			var bg = chrome.extension.getBackgroundPage();
+
+			// Save current
+			saveSettings();
+
+			// Load settings from server
+			if(!bg.testSettings()) {
+				alert('Could not load settings from Zend Studio');
+			}
+
+			// Update display
+			resetSettings();
+		}
+
+		</script>
+	</head>
+	<body onload="resetSettings()" onunload="saveSettings()">
+		<div id="header">
+			<img src="resources/zde_icon48.png" alt="Zend Debugger" />
+			<h1>Zend Debugger Extension</h1>
+			<div class="clearfix"></div>
+		</div>
+
+		<h2>About</h2>
+		<div class="content">
+			<p>
+				Version : 0.6<br/>
+				Author : D.M. Docter<br/>
+				<br/>
+				Simple Zend debugger extension, meant to fill the gap until Zend publishes an official plugin for Chrome.<br/>
+				<br/>
+				The extension is not affiliated to nor endorsed by Zend Technologies at this moment. Trademarks and/or copyright of Zend name, logo and icons belong to Zend Technologies Ltd.<br/>
+			</p>
+		</div>
+		<h2>Debug Settings</h2>
+		<div class="content">
+		    <div><input id='localcopy' name='localcopy' type='checkbox' value='1' checked onclick="saveSettings();"><label for='localcopy'>Debug local copy(if available)</label></div>
+		    <div><input id='breakfirstline' name='breakfirstline' type='checkbox' value='1' checked onclick="saveSettings();"><label for='breakfirstline'>Break on first line</label></div>
+		</div>
+		<h2>Connection Settings</h2>
+		<div class="content">
+		    <input id='connecttype_automatic' name='connecttype' type='radio' value='automatic' checked onclick="setConnectType('automatic');saveSettings();"><label for='connecttype1'>Automatic</label>
+		    <input id='connecttype_manual' name='connecttype' type='radio' value='manual' onclick="setConnectType('manual');saveSettings();"><label for='connecttype1'>Manual</label>
+		    <input id='connecttest' name='connectest' type='button' value='test' onclick="testSettings();">
+		    <fieldset>
+		        <legend>Broadcast</legend>
+                <input id='broadcast' name='broadcast' type='text' value='20080' onchange="saveSettings()" onblur="saveSettings()"><label for='broadcast'>Broadcast port</label><br/>
+		    </fieldset>
+		    <fieldset>
+		        <legend>IP/Port</legend>
+                <input id='ip' name='ip' type='text' value='' disabled onchange="saveSettings()" onblur="saveSettings()"><label for='ip'>Zend Studio IP</label><br/>
+	    	    <input id='port' name='port' type='text' value='10000' disabled onchange="saveSettings()" onblur="saveSettings()"><label for='port'>Zend Studio Port</label><br/>
+				<input id='ssl' name='ssl' type='checkbox' value='1' disabled onchange="saveSettings()" onblur="saveSettings()"><label for='ssl'>Use SSL for debug connection</label><br/>
+		    </fieldset>
+		</div>
+	</body>
+</html>

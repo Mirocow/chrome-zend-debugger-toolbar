@@ -1,0 +1,32 @@
+About
+--------------------------------------------------
+Version : 0.6
+Author : D.M. Docter
+
+Simple Zend debugger toolbar extension, meant to
+fill the gap until Zend publishes an official
+plugin for Google Chrome.
+
+The extension is not affiliated to, nor endorsed
+by Zend Technologies at this moment. Trademarks
+and/or copyright of Zend name, logo and icons
+belong to Zend Technologies Ltd.
+
+Changes:
+0.6     Fix: Options page no longer closes
+        automatically
+0.5     Initial Release
+
+--------------------------------------------------
+Installation instructions.
+--------------------------------------------------
+
+Open the .crx file with Google Chrome.
+
+--------------------------------------------------
+Other notes.
+--------------------------------------------------
+
+If you find any quirks & bugs feel free to email
+me : dennis _at_ d23 _dot_ nl
+
